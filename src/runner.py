@@ -6,12 +6,14 @@ from random import randint
 #########################################
 ## START of part that students may change
 from code_completion_baseline import Code_Completion_Baseline
+from code_completion_ff2hl import Code_Completion_Ff2hl
+from code_completion_lstm import Code_Completion_Lstm
 
 training_dir = "./../../programs_800/"
 query_dir = "./../../programs_200/"
 
 model_file = "./../../trained_model"
-use_stored_model = False
+use_stored_model = True
 
 max_hole_size = 2
 simplify_tokens = True
@@ -54,12 +56,14 @@ def same_tokens(tokens1, tokens2):
     for idx, t1 in enumerate(tokens1):
         t2 = tokens2[idx]
         if t1["type"] != t2["type"] or t1["value"] != t2["value"]:
-            return False  
+            return False
     return True
 
 #########################################
 ## START of part that students may change
-code_completion = Code_Completion_Baseline()
+#code_completion = Code_Completion_Baseline()
+#code_completion = Code_Completion_Ff2hl()
+code_completion = Code_Completion_Lstm()
 ## END of part that students may change
 #########################################
 
@@ -73,13 +77,25 @@ else:
 # query the network and measure its accuracy
 query_token_lists = load_tokens(query_dir)
 correct = incorrect = 0
+i = 0
 for tokens in query_token_lists:
+    if i == 0:
+        print("TOKENS")
+        print(tokens)
     (prefix, expected, suffix) = create_hole(tokens)
+    if i == 0:
+        print("PREFIX")
+        print(prefix)
+        print("EXPECTED")
+        print(expected)
+        print("SUFFIX")
+        print(suffix)
     completion = code_completion.query(prefix, suffix)
     if same_tokens(completion, expected):
         correct += 1
     else:
         incorrect += 1
+    i += 1
 accuracy = correct / (correct + incorrect)
 print("Accuracy: " + str(correct) + " correct vs. " + str(incorrect) + " incorrect = "  + str(accuracy))
 
