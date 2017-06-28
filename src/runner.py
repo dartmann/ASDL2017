@@ -13,9 +13,9 @@ training_dir = "./../../programs_800/"
 query_dir = "./../../programs_200/"
 
 model_file = "./../../trained_model"
-use_stored_model = True
+use_stored_model = False
 
-max_hole_size = 2
+max_hole_size = 1
 simplify_tokens = True
 ## END of part that students may change
 #########################################
@@ -77,12 +77,15 @@ else:
 # query the network and measure its accuracy
 query_token_lists = load_tokens(query_dir)
 correct = incorrect = 0
-i = 0
+#i = 0
 for tokens in query_token_lists:
+    """
     if i == 0:
         print("TOKENS")
         print(tokens)
+    """
     (prefix, expected, suffix) = create_hole(tokens)
+    """
     if i == 0:
         print("PREFIX")
         print(prefix)
@@ -90,12 +93,18 @@ for tokens in query_token_lists:
         print(expected)
         print("SUFFIX")
         print(suffix)
+    """
     completion = code_completion.query(prefix, suffix)
+    """
+    if i == 0:
+        print("COMPLETION")
+        print(completion)
+    """
     if same_tokens(completion, expected):
         correct += 1
     else:
         incorrect += 1
-    i += 1
+    #i += 1
 accuracy = correct / (correct + incorrect)
 print("Accuracy: " + str(correct) + " correct vs. " + str(incorrect) + " incorrect = "  + str(accuracy))
 
