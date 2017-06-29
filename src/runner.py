@@ -8,12 +8,13 @@ from random import randint
 from code_completion_baseline import Code_Completion_Baseline
 from code_completion_ff2hl import Code_Completion_Ff2hl
 from code_completion_lstm import Code_Completion_Lstm
+from code_completion_lstm2 import Code_Completion_Lstm2
 
-training_dir = "./../../programs_800/"
-query_dir = "./../../programs_200/"
+training_dir = "./../training_data/programs_800/"
+query_dir = "./../training_data/programs_200/"
 
 model_file = "./../../trained_model"
-use_stored_model = False
+use_stored_model = True
 
 max_hole_size = 1
 simplify_tokens = True
@@ -63,7 +64,8 @@ def same_tokens(tokens1, tokens2):
 ## START of part that students may change
 #code_completion = Code_Completion_Baseline()
 #code_completion = Code_Completion_Ff2hl()
-code_completion = Code_Completion_Lstm()
+#code_completion = Code_Completion_Lstm()
+code_completion = Code_Completion_Lstm2()
 ## END of part that students may change
 #########################################
 
@@ -83,7 +85,7 @@ for tokens in query_token_lists:
     if i == 0:
         print("TOKENS")
         print(tokens)
-    """
+    #"""
     (prefix, expected, suffix) = create_hole(tokens)
     """
     if i == 0:
