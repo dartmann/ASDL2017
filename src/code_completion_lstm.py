@@ -17,6 +17,8 @@ class Code_Completion_Lstm:
         return vector
 
     def prepare_data(self, token_lists):
+        # TODO: here we can implement the 2nd dim with 3
+        #   -> build a sequence (arr) which gets the 3 previous tokens and then is fed into xs. Thats all...
         # encode tokens into one-hot vectors
         all_token_strings = set()
         for token_list in token_lists:
@@ -70,6 +72,7 @@ class Code_Completion_Lstm:
 
     def create_network(self):
         # We reshape the input data to fit 3D, by inserting another dimension (1)
+        # TODO: here we can implement the 2nd dim with 3
         self.net = tflearn.input_data(shape=[None, 1, len(self.string_to_number)])
         self.net = tflearn.lstm(self.net, 128, return_seq=True)
         self.net = tflearn.lstm(self.net, 32, return_seq=True)
@@ -88,6 +91,7 @@ class Code_Completion_Lstm:
         (xs, ys) = self.prepare_data(token_lists)
         self.create_network()
         # We need to reshape the model to 3D
+        # TODO: here we can implement the 2nd dim with 3
         xs = numpy.reshape(xs, (-1, 1, 86))
         self.model.fit(xs, ys, n_epoch=1, show_metric=True, batch_size=1024)
         self.model.save(model_file)
@@ -95,10 +99,12 @@ class Code_Completion_Lstm:
     def query(self, prefix, suffix):
         #print("\nSuffix:")
         #print(suffix)
+        ## This is important to setup at first!
         previous_token_string = self.token_to_string(prefix[-1])
         # Create the initial one hot encoding vector (before if-else, because both depend on it)
         x = [0] * len(self.string_to_number)
         # If we have a suffix
+        ## TODO: non existing previous vectors are simply encoded as zero-vectors
         if (len(suffix) > 0):
             right = self.token_to_string(suffix[0])
             x[self.string_to_number[right]] = 3

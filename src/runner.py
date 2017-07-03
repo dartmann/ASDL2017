@@ -9,12 +9,13 @@ from code_completion_baseline import Code_Completion_Baseline
 from code_completion_ff2hl import Code_Completion_Ff2hl
 from code_completion_lstm import Code_Completion_Lstm
 from code_completion_lstm2 import Code_Completion_Lstm2
+from code_completion_lstm_fivearound import Code_Completion_FiveAround
 
 training_dir = "./../training_data/programs_800/"
 query_dir = "./../training_data/programs_200/"
 
 model_file = "./../../trained_model"
-use_stored_model = True
+use_stored_model = False
 
 max_hole_size = 1
 simplify_tokens = True
@@ -65,7 +66,8 @@ def same_tokens(tokens1, tokens2):
 #code_completion = Code_Completion_Baseline()
 #code_completion = Code_Completion_Ff2hl()
 #code_completion = Code_Completion_Lstm()
-code_completion = Code_Completion_Lstm2()
+#code_completion = Code_Completion_Lstm2()
+code_completion = Code_Completion_FiveAround()
 ## END of part that students may change
 #########################################
 
@@ -79,7 +81,7 @@ else:
 # query the network and measure its accuracy
 query_token_lists = load_tokens(query_dir)
 correct = incorrect = 0
-#i = 0
+i = 0
 for tokens in query_token_lists:
     """
     if i == 0:
@@ -88,20 +90,20 @@ for tokens in query_token_lists:
     #"""
     (prefix, expected, suffix) = create_hole(tokens)
     """
-    if i == 0:
+    if i < 10:
         print("PREFIX")
         print(prefix)
         print("EXPECTED")
         print(expected)
         print("SUFFIX")
         print(suffix)
-    """
+    #"""
     completion = code_completion.query(prefix, suffix)
     """
-    if i == 0:
+    if i < 10:
         print("COMPLETION")
         print(completion)
-    """
+    #"""
     if same_tokens(completion, expected):
         correct += 1
     else:
