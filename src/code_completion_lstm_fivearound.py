@@ -1,3 +1,5 @@
+from builtins import len
+
 import tflearn
 import numpy
 
@@ -65,7 +67,7 @@ class Code_Completion_FiveAround:
                     v[self.string_to_number[self.token_to_string(token_list[idx + 5])]] = 10  # 5
                     # Set the prepared vector
                     xs.append(v)
-                # If we are at one of the first five tokens
+                # If we are at one of the first five tokens and the remaining list has at least five elements
                 elif idx <= 4 and (idx + 5) < len(token_list):
                     # Suffix is set anyway
                     v[self.string_to_number[self.token_to_string(token_list[idx + 1])]] = 6  # 1
@@ -90,7 +92,7 @@ class Code_Completion_FiveAround:
                         v[self.string_to_number[self.token_to_string(token_list[idx - 1])]] = 5  # -1
                     # Set the prepared vector
                     xs.append(v)
-                # If we are at one of the last five tokens
+                # If we are at one of the last five tokens and the aforegoing list hast at least five elements
                 elif idx > 4 and (idx + 5) >= len(token_list):
                     # Prefix is set anyway
                     v[self.string_to_number[self.token_to_string(token_list[idx - 5])]] = 1  # -5
@@ -115,7 +117,32 @@ class Code_Completion_FiveAround:
                         v[self.string_to_number[self.token_to_string(token_list[idx + 4])]] = 9  # 4
                     # Set the prepared vector
                     xs.append(v)
+                #####################################################
+                # Corner cases
+                #####################################################
+                elif idx > 3 and (idx + 3) <= len(token_list):
+                    print("HIT3 with idx: " + str(idx) + " and list length: " + str(len(token_list)))
+                    v[self.string_to_number[self.token_to_string(token_list[idx - 4])]] = 2
+                    v[self.string_to_number[self.token_to_string(token_list[idx - 3])]] = 3
+                    v[self.string_to_number[self.token_to_string(token_list[idx - 2])]] = 4
+                    v[self.string_to_number[self.token_to_string(token_list[idx - 1])]] = 5
+                    v[self.string_to_number[self.token_to_string(token_list[idx + 1])]] = 6
+                    v[self.string_to_number[self.token_to_string(token_list[idx + 2])]] = 7
+                    xs.append(v)
+                elif idx > 2 and (idx + 2) <= len(token_list):
+                    print("HIT2 with idx: " + str(idx) + " and list length: " + str(len(token_list)))
+                    v[self.string_to_number[self.token_to_string(token_list[idx - 3])]] = 3
+                    v[self.string_to_number[self.token_to_string(token_list[idx - 2])]] = 4
+                    v[self.string_to_number[self.token_to_string(token_list[idx - 1])]] = 5
+                    v[self.string_to_number[self.token_to_string(token_list[idx + 1])]] = 6
+                    xs.append(v)
+                elif idx > 1 and (idx + 1) <= len(token_list):
+                    print("HIT1 with idx: " + str(idx) + " and list length: " + str(len(token_list)))
+                    v[self.string_to_number[self.token_to_string(token_list[idx - 2])]] = 4
+                    v[self.string_to_number[self.token_to_string(token_list[idx - 1])]] = 5
+                    xs.append(v)
                 else:
+                    print("ELSE with idx: " + str(idx) + " and list length: " + str(len(token_list)))
                     prev1 = self.token_to_string(token_list[idx - 1])
                     xs.append(self.one_hot(prev1))
                 ys.append(self.one_hot(self.token_to_string(token)))
@@ -142,7 +169,7 @@ class Code_Completion_FiveAround:
         (xs, ys) = self.prepare_data(token_lists)
         self.create_network()
         xs = numpy.reshape(xs, (-1, 1, 86))
-        self.model.fit(xs, ys, n_epoch=5, batch_size=32, show_metric=True)
+        self.model.fit(xs, ys, n_epoch=1, batch_size=1024, show_metric=True)
         self.model.save(model_file)
 
     def query(self, prefix, suffix):
@@ -150,6 +177,7 @@ class Code_Completion_FiveAround:
         x = [0] * len(self.string_to_number)
         # Same as above in #prepare_data
         if len(prefix) > 4 and len(suffix) > 4:
+            # print("middle")
             x[self.string_to_number[self.token_to_string(prefix[-4])]] = 1  # -5
             x[self.string_to_number[self.token_to_string(prefix[-3])]] = 2  # -4
             x[self.string_to_number[self.token_to_string(prefix[-2])]] = 3  # -3
@@ -161,11 +189,14 @@ class Code_Completion_FiveAround:
             x[self.string_to_number[self.token_to_string(suffix[3])]] = 9  # 4
             x[self.string_to_number[self.token_to_string(suffix[4])]] = 10  # 5
         elif len(prefix) <= 4 and len(suffix) > 4:
+            # print("begin")
+            # Set the suffix anyway
             x[self.string_to_number[self.token_to_string(suffix[0])]] = 6  # 1
             x[self.string_to_number[self.token_to_string(suffix[1])]] = 7  # 2
             x[self.string_to_number[self.token_to_string(suffix[2])]] = 8  # 3
             x[self.string_to_number[self.token_to_string(suffix[3])]] = 9  # 4
             x[self.string_to_number[self.token_to_string(suffix[4])]] = 10  # 5
+            # Set the prefix in dependency of its length
             if len(prefix) == 1:
                 x[self.string_to_number[self.token_to_string(prefix[0])]] = 5  # -1
             elif len(prefix) == 2:
@@ -181,6 +212,7 @@ class Code_Completion_FiveAround:
                 x[self.string_to_number[self.token_to_string(prefix[-1])]] = 4  # -2
                 x[self.string_to_number[self.token_to_string(prefix[0])]] = 5  # -1
         elif len(prefix) > 4 and len(suffix) <= 4:
+            # print("end")
             x[self.string_to_number[self.token_to_string(prefix[-4])]] = 1  # -5
             x[self.string_to_number[self.token_to_string(prefix[-3])]] = 2  # -4
             x[self.string_to_number[self.token_to_string(prefix[-2])]] = 3  # -3
@@ -200,7 +232,26 @@ class Code_Completion_FiveAround:
                 x[self.string_to_number[self.token_to_string(suffix[1])]] = 7  # 2
                 x[self.string_to_number[self.token_to_string(suffix[2])]] = 8  # 3
                 x[self.string_to_number[self.token_to_string(suffix[3])]] = 9  # 4
+        #####################################################
+        # Corner cases
+        #####################################################
+        elif len(prefix) >= 4 and len(suffix) <= 2:
+            x[self.string_to_number[self.token_to_string(prefix[-3])]] = 2
+            x[self.string_to_number[self.token_to_string(prefix[-2])]] = 3
+            x[self.string_to_number[self.token_to_string(prefix[-1])]] = 4
+            x[self.string_to_number[self.token_to_string(prefix[0])]] = 5
+            x[self.string_to_number[self.token_to_string(suffix[0])]] = 6
+            x[self.string_to_number[self.token_to_string(suffix[1])]] = 7
+        elif len(prefix) >= 3 and len(suffix) <= 1:
+            x[self.string_to_number[self.token_to_string(prefix[-2])]] = 3
+            x[self.string_to_number[self.token_to_string(prefix[-1])]] = 4
+            x[self.string_to_number[self.token_to_string(prefix[0])]] = 5
+            x[self.string_to_number[self.token_to_string(suffix[0])]] = 6
+        elif len(prefix) >= 2 and len(suffix) == 0:
+            x[self.string_to_number[self.token_to_string(prefix[-1])]] = 4
+            x[self.string_to_number[self.token_to_string(prefix[0])]] = 5
         else:
+            # print("ELSE -> len prefix: " + str(len(prefix)) + ", len suffix: " + str(len(suffix)))
             previous_token_string = self.token_to_string(prefix[-1])
             x = self.one_hot(previous_token_string)
 

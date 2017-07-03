@@ -41,7 +41,8 @@ class Code_Completion_ThreeAround:
                 # Base vector to work on
                 v = [0] * len(self.string_to_number)
                 # If we have three tokens before and afterwards we encode the three previous
-                # indexes with [-3, -2, -1] and the three following with [1, 2, 3].
+                # indexes with [-3, -2, -1] and the three following with [1, 2, 3]. (OLD)
+                # -> New Approach has no negative numbers!
                 if idx > 2 and (idx + 3) < len(token_list):
                     # Get prefix token, three indexes before
                     v[self.string_to_number[self.token_to_string(token_list[idx - 3])]] = 1  # -3
@@ -64,15 +65,10 @@ class Code_Completion_ThreeAround:
                     v[self.string_to_number[self.token_to_string(token_list[idx + 2])]] = 5  # 2
                     v[self.string_to_number[self.token_to_string(token_list[idx + 3])]] = 6  # 3
                     # First index is set to zero implicitly and 2nd index to -1
-                    if idx >= 1:
+                    if idx > 0:
                         v[self.string_to_number[self.token_to_string(token_list[idx - 1])]] = 3  # -1
-                    if idx >= 2:
+                    if idx > 1:
                         v[self.string_to_number[self.token_to_string(token_list[idx - 2])]] = 2  # -2
-                        # v[self.string_to_number[self.token_to_string(token_list[idx - 1])]] = 3  # -1
-                    if idx >= 3:
-                        v[self.string_to_number[self.token_to_string(token_list[idx - 3])]] = 1  # -3
-                        # v[self.string_to_number[self.token_to_string(token_list[idx - 2])]] = 2  # -2
-                        # v[self.string_to_number[self.token_to_string(token_list[idx - 1])]] = 3  # -1
                     # Set the prepared vector
                     xs.append(v)
                 # If we are at one of the last three tokens
@@ -82,15 +78,10 @@ class Code_Completion_ThreeAround:
                     v[self.string_to_number[self.token_to_string(token_list[idx - 2])]] = 2  # -2
                     v[self.string_to_number[self.token_to_string(token_list[idx - 1])]] = 3  # -1
                     # Last index is set to zero implicitly and 2nd last index to 1
-                    if (idx + 2) <= len(token_list):
+                    if (idx + 1) < len(token_list):
                         v[self.string_to_number[self.token_to_string(token_list[idx + 1])]] = 4  # 1
-                    if (idx + 3) <= len(token_list):
-                        # v[self.string_to_number[self.token_to_string(token_list[idx + 1])]] = 4  # 1
+                    if (idx + 2) < len(token_list):
                         v[self.string_to_number[self.token_to_string(token_list[idx + 2])]] = 5  # 2
-                    if (idx + 4) <= len(token_list):
-                        # v[self.string_to_number[self.token_to_string(token_list[idx + 1])]] = 4  # 1
-                        # v[self.string_to_number[self.token_to_string(token_list[idx + 2])]] = 5  # 2
-                        v[self.string_to_number[self.token_to_string(token_list[idx + 3])]] = 6  # 3
                     # Set the prepared vector
                     xs.append(v)
                 else:
@@ -120,13 +111,15 @@ class Code_Completion_ThreeAround:
         (xs, ys) = self.prepare_data(token_lists)
         self.create_network()
         xs = numpy.reshape(xs, (-1, 1, 86))
-        self.model.fit(xs, ys, n_epoch=1, batch_size=1024, show_metric=True)
+        self.model.fit(xs, ys, n_epoch=1, batch_size=32, show_metric=True)
         self.model.save(model_file)
 
     def query(self, prefix, suffix):
-        # Built up the vector like prepared
+        # Base vector to work on
         x = [0] * len(self.string_to_number)
-        # Same as above in #prepare_data
+        # If we have three tokens before and afterwards we encode the three previous
+        # indexes with [-3, -2, -1] and the three following with [1, 2, 3]. (OLD)
+        # -> New Approach has no negative numbers!
         if len(prefix) > 2 and len(suffix) > 2:
             x[self.string_to_number[self.token_to_string(prefix[-2])]] = 1  # -3
             x[self.string_to_number[self.token_to_string(prefix[-1])]] = 2  # -2
@@ -134,32 +127,24 @@ class Code_Completion_ThreeAround:
             x[self.string_to_number[self.token_to_string(suffix[0])]] = 4  # 1
             x[self.string_to_number[self.token_to_string(suffix[1])]] = 5  # 2
             x[self.string_to_number[self.token_to_string(suffix[2])]] = 6  # 3
-        elif len(prefix) <= 3 and len(suffix) > 2:
+        # If we are at one of the first three tokens
+        elif len(prefix) <= 2  and len(suffix) >= 3:
             x[self.string_to_number[self.token_to_string(suffix[0])]] = 4  # 1
             x[self.string_to_number[self.token_to_string(suffix[1])]] = 5  # 2
             x[self.string_to_number[self.token_to_string(suffix[2])]] = 6  # 3
-            if len(prefix) >= 1:
+            if len(prefix) > 0:
                 x[self.string_to_number[self.token_to_string(prefix[0])]] = 3  # -1
-            if len(prefix) >= 2:
+            if len(prefix) > 1:
                 x[self.string_to_number[self.token_to_string(prefix[-1])]] = 2  # -2
-                # x[self.string_to_number[self.token_to_string(prefix[0])]] = 3  # -1
-            if len(prefix) >= 3:
-                x[self.string_to_number[self.token_to_string(prefix[-2])]] = 1  # -3
-                # x[self.string_to_number[self.token_to_string(prefix[-1])]] = 2  # -2
-                # x[self.string_to_number[self.token_to_string(prefix[0])]] = 3  # -1
-        elif len(prefix) > 2 and len(suffix) <= 3:
+        # If we are at one of the last three tokens
+        elif len(prefix) > 2 and len(suffix) < 3:
             x[self.string_to_number[self.token_to_string(prefix[-2])]] = 1  # -3
             x[self.string_to_number[self.token_to_string(prefix[-1])]] = 2  # -2
             x[self.string_to_number[self.token_to_string(prefix[0])]] = 3  # -1
             if len(suffix) >= 1:
                 x[self.string_to_number[self.token_to_string(suffix[0])]] = 4  # 1
             if len(suffix) >= 2:
-                # x[self.string_to_number[self.token_to_string(suffix[0])]] = 4  # 1
                 x[self.string_to_number[self.token_to_string(suffix[1])]] = 5  # 2
-            if len(suffix) >= 3:
-                # x[self.string_to_number[self.token_to_string(suffix[0])]] = 4  # 1
-                # x[self.string_to_number[self.token_to_string(suffix[1])]] = 5  # 2
-                x[self.string_to_number[self.token_to_string(suffix[2])]] = 6  # 3
         else:
             previous_token_string = self.token_to_string(prefix[-1])
             x = self.one_hot(previous_token_string)

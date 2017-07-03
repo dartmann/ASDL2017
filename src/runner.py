@@ -16,7 +16,7 @@ training_dir = "./../training_data/programs_800/"
 query_dir = "./../training_data/programs_200/"
 
 model_file = "./../../trained_model"
-use_stored_model = False
+use_stored_model = True
 
 max_hole_size = 1
 simplify_tokens = True
@@ -68,8 +68,8 @@ def same_tokens(tokens1, tokens2):
 #code_completion = Code_Completion_Ff2hl()
 #code_completion = Code_Completion_Lstm()
 #code_completion = Code_Completion_Lstm2()
-code_completion = Code_Completion_FiveAround()
-#code_completion = Code_Completion_ThreeAround()
+#code_completion = Code_Completion_FiveAround()
+code_completion = Code_Completion_ThreeAround()
 ## END of part that students may change
 #########################################
 
