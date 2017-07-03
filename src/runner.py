@@ -10,6 +10,7 @@ from code_completion_ff2hl import Code_Completion_Ff2hl
 from code_completion_lstm import Code_Completion_Lstm
 from code_completion_lstm2 import Code_Completion_Lstm2
 from code_completion_lstm_fivearound import Code_Completion_FiveAround
+from code_completion_lstm_threearound import Code_Completion_ThreeAround
 
 training_dir = "./../training_data/programs_800/"
 query_dir = "./../training_data/programs_200/"
@@ -68,6 +69,7 @@ def same_tokens(tokens1, tokens2):
 #code_completion = Code_Completion_Lstm()
 #code_completion = Code_Completion_Lstm2()
 code_completion = Code_Completion_FiveAround()
+#code_completion = Code_Completion_ThreeAround()
 ## END of part that students may change
 #########################################
 
