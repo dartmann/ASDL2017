@@ -50,7 +50,6 @@ class Code_Completion_Lstm:
                     if (idx + 1) < len(token_list):
                         # Get the next token
                         s = self.token_to_string(token_list[idx + 1])
-                        v = [0] * len(self.string_to_number)
                         # Suffix gets value 3 in vector AND previous token string gets value 2
                         v[self.string_to_number[s]] = 3
                         v[self.string_to_number[previous_token_string]] = 2
@@ -80,7 +79,7 @@ class Code_Completion_Lstm:
         self.net = tflearn.lstm(self.net, 128)
         self.net = tflearn.fully_connected(self.net, len(self.string_to_number), activation='softmax')
         self.net = tflearn.regression(self.net)
-        self.model = tflearn.DNN(self.net, tensorboard_verbose=0)
+        self.model = tflearn.DNN(self.net)
 
     def load(self, token_lists, model_file):
         self.prepare_data(token_lists)
