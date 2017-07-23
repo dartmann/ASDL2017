@@ -6,6 +6,7 @@ src/__pycache__
 .idea/**/workspace.xml
 .idea/**/tasks.xml
 .idea/dictionaries
+.idea/vagrant.xml
 
 # Sensitive or high-churn files:
 .idea/**/dataSources/
@@ -48,3 +49,13 @@ com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 fabric.properties
+.DS_Store
+.idea/ASDL2017.iml
+.idea/inspectionProfiles/
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+.idea/webResources.xml
+model/
+src/test.py
+training_data/
