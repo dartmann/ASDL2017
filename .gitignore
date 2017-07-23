@@ -59,3 +59,4 @@ fabric.properties
 model/
 src/test.py
 training_data/
+!/src/test.py
