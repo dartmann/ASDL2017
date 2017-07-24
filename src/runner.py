@@ -13,11 +13,12 @@ from code_completion_lstm_fivearound import Code_Completion_FiveAround
 from code_completion_lstm_threearound import Code_Completion_ThreeAround
 from code_completion_lstm_forward_backward import Code_Completion_Forward_Backward
 from test import Code_Completion_Test
+from code_completion_lstm_final import Code_Completion_LstmFinal
 
 training_dir = "./../training_data/programs_800/"
 query_dir = "./../training_data/programs_200/"
 
-model_file = "./../trained_model"
+model_file = "./../model/trained_model"
 use_stored_model = False
 
 max_hole_size = 1
@@ -73,7 +74,8 @@ def same_tokens(tokens1, tokens2):
 #code_completion = Code_Completion_FiveAround()
 #code_completion = Code_Completion_ThreeAround()
 #code_completion = Code_Completion_Forward_Backward()
-code_completion = Code_Completion_Test()
+#code_completion = Code_Completion_Test()
+code_completion = Code_Completion_LstmFinal()
 ## END of part that students may change
 #########################################
 
