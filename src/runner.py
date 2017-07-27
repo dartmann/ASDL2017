@@ -13,15 +13,24 @@ from code_completion_lstm_fivearound import Code_Completion_FiveAround
 from code_completion_lstm_threearound import Code_Completion_ThreeAround
 from code_completion_lstm_forward_backward import Code_Completion_Forward_Backward
 from test import Code_Completion_Test
-from code_completion_lstm_final import Code_Completion_LstmFinal
+from c_c_lstm_final_twoaround import C_C_Lstm_Final_TwoAround
+from c_c_ff_final_onearound import C_C_Ff_Final_OneAround
+from c_c_ff_final_twoaround import C_C_Ff_Final_TwoAround
 
-training_dir = "./../training_data/programs_800/"
+# Training with 2400 files
+#training_dir = "./../training_data/programs_800/"
+# Training with 1800 files
+training_dir = "./../training_data/programs_600"
+# Training with 1200 files
+#training_dir = "./../training_data/programs_400/"
+# Training with 300 files
+#training_dir = "./../training_data/programs_100/"
 query_dir = "./../training_data/programs_200/"
 
 model_file = "./../model/trained_model"
 use_stored_model = False
 
-max_hole_size = 1
+max_hole_size = 2
 simplify_tokens = True
 ## END of part that students may change
 #########################################
@@ -75,7 +84,9 @@ def same_tokens(tokens1, tokens2):
 #code_completion = Code_Completion_ThreeAround()
 #code_completion = Code_Completion_Forward_Backward()
 #code_completion = Code_Completion_Test()
-code_completion = Code_Completion_LstmFinal()
+code_completion = C_C_Lstm_Final_TwoAround()
+#code_completion = C_C_Ff_Final_OneAround()
+#code_completion = C_C_Ff_Final_TwoAround()
 ## END of part that students may change
 #########################################
 
@@ -89,34 +100,13 @@ else:
 # query the network and measure its accuracy
 query_token_lists = load_tokens(query_dir)
 correct = incorrect = 0
-i = 0
 for tokens in query_token_lists:
-    """
-    if i == 0:
-        print("TOKENS")
-        print(tokens)
-    #"""
     (prefix, expected, suffix) = create_hole(tokens)
-    """
-    if i < 10:
-        print("PREFIX")
-        print(prefix)
-        print("EXPECTED")
-        print(expected)
-        print("SUFFIX")
-        print(suffix)
-    #"""
     completion = code_completion.query(prefix, suffix)
-    """
-    if i < 10:
-        print("COMPLETION")
-        print(completion)
-    #"""
     if same_tokens(completion, expected):
         correct += 1
     else:
         incorrect += 1
-    #i += 1
 accuracy = correct / (correct + incorrect)
 print("Accuracy: " + str(correct) + " correct vs. " + str(incorrect) + " incorrect = "  + str(accuracy))
 

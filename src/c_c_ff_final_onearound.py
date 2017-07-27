@@ -1,8 +1,11 @@
 import tflearn
 import numpy
 
+fact_input_dim = 2
+fact_fully_conn_units = 3
 
-class Code_Completion_LstmFinal:
+
+class C_C_Ff_Final_OneAround:
     def token_to_string(self, token):
         return token["type"] + "-@@-" + token["value"]
 
@@ -38,10 +41,9 @@ class Code_Completion_LstmFinal:
         print("33%")
         (x2, y2) = self.prepare_hole_size_two(token_lists)
         print("66%")
-        # (x3, y3) = self.prepare_hole_size_three(token_lists)
+        (x3, y3) = self.prepare_hole_size_three(token_lists)
         print("100%")
-        # return numpy.concatenate([x1, x2, x3]), numpy.concatenate([y1, y2, y3])
-        return (numpy.concatenate([x1, x2]), numpy.concatenate([y1, y2]))
+        return numpy.concatenate([x1, x2, x3]), numpy.concatenate([y1, y2, y3])
 
     # Prepares x-y pairs for hole of size one
     def prepare_hole_size_one(self, token_lists):
@@ -49,13 +51,11 @@ class Code_Completion_LstmFinal:
         ys = []
         for token_list in token_lists:
             for idx, token in enumerate(token_list):
-                if 2 < idx < len(token_list) - 3:
+                if 1 < idx < len(token_list) - 2:
                     token_str = self.token_to_string(token)
-                    prefix2 = self.one_hot(self.token_to_string(token_list[idx - 2]))
                     prefix1 = self.one_hot(self.token_to_string(token_list[idx - 1]))
                     suffix1 = self.one_hot(self.token_to_string(token_list[idx + 1]))
-                    suffix2 = self.one_hot(self.token_to_string(token_list[idx + 2]))
-                    x = numpy.concatenate([prefix2, prefix1, suffix1, suffix2])
+                    x = numpy.concatenate([prefix1, suffix1])
                     y = numpy.concatenate([self.one_hot(token_str),
                                            self.one_hot("EOS"),
                                            self.one_hot("EOS")])
@@ -69,14 +69,12 @@ class Code_Completion_LstmFinal:
         ys = []
         for token_list in token_lists:
             for idx, token in enumerate(token_list):
-                if 2 < idx < len(token_list) - 4:
+                if 1 < idx < len(token_list) - 3:
                     token_str = self.token_to_string(token_list[idx])
                     next_token_str = self.token_to_string(token_list[idx + 1])
-                    prefix2 = self.one_hot(self.token_to_string(token_list[idx - 2]))
                     prefix1 = self.one_hot(self.token_to_string(token_list[idx - 1]))
                     suffix1 = self.one_hot(self.token_to_string(token_list[idx + 2]))
-                    suffix2 = self.one_hot(self.token_to_string(token_list[idx + 3]))
-                    x = numpy.concatenate([prefix2, prefix1, suffix1, suffix2])
+                    x = numpy.concatenate([prefix1, suffix1])
                     y = numpy.concatenate([self.one_hot(token_str),
                                            self.one_hot(next_token_str),
                                            self.one_hot("EOS")])
@@ -94,11 +92,9 @@ class Code_Completion_LstmFinal:
                     token_str = self.token_to_string(token_list[idx])
                     next_token_str = self.token_to_string(token_list[idx + 1])
                     second_next_token_str = self.token_to_string(token_list[idx + 2])
-                    prefix2 = self.one_hot(self.token_to_string(token_list[idx - 2]))
                     prefix1 = self.one_hot(self.token_to_string(token_list[idx - 1]))
                     suffix1 = self.one_hot(self.token_to_string(token_list[idx + 3]))
-                    suffix2 = self.one_hot(self.token_to_string(token_list[idx + 4]))
-                    x = numpy.concatenate([prefix2, prefix1, suffix1, suffix2])
+                    x = numpy.concatenate([prefix1, suffix1])
                     y = numpy.concatenate([self.one_hot(token_str),
                                            self.one_hot(next_token_str),
                                            self.one_hot(second_next_token_str)])
@@ -107,12 +103,11 @@ class Code_Completion_LstmFinal:
         return xs, ys
 
     def create_network(self):
-        self.net = tflearn.input_data(shape=[None, 1, len(self.string_to_number) * 4])
-        self.net = tflearn.lstm(self.net, 128, return_seq=True)
-        self.net = tflearn.lstm(self.net, 32, return_seq=True)
-        self.net = tflearn.lstm(self.net, 32, return_seq=True)
-        self.net = tflearn.lstm(self.net, 128)
-        self.net = tflearn.fully_connected(self.net, len(self.string_to_number) * 3, activation='softmax')
+        self.net = tflearn.input_data(shape=[None, len(self.string_to_number) * fact_input_dim])
+        self.net = tflearn.fully_connected(self.net, 200)
+        self.net = tflearn.fully_connected(self.net, 100)
+        self.net = tflearn.fully_connected(self.net, len(self.string_to_number) * fact_fully_conn_units,
+                                           activation='softmax')
         self.net = tflearn.regression(self.net)
         self.model = tflearn.DNN(self.net)
 
@@ -124,39 +119,30 @@ class Code_Completion_LstmFinal:
     def train(self, token_lists, model_file):
         (xs, ys) = self.prepare_data(token_lists)
         self.create_network()
-        xs = numpy.reshape(xs, (-1, 1, len(self.string_to_number) * 4))
         self.model.fit(xs, ys, n_epoch=1, batch_size=1024, show_metric=True)
         self.model.save(model_file)
 
     def query(self, prefix, suffix):
-        if len(prefix) >= 2:
-            prefix2 = self.one_hot(self.token_to_string(prefix[-2]))
-            prefix1 = self.one_hot(self.token_to_string(prefix[-1]))
-        elif len(prefix) == 1:
-            prefix2 = [0] * len(self.string_to_number)
+        if len(prefix) >= 1:
             prefix1 = self.one_hot(self.token_to_string(prefix[-1]))
         else:
-            prefix2 = [0] * len(self.string_to_number)
             prefix1 = [0] * len(self.string_to_number)
 
-        if len(suffix) >= 2:
+        if len(suffix) >= 1:
             suffix1 = self.one_hot(self.token_to_string(suffix[0]))
-            suffix2 = self.one_hot(self.token_to_string(suffix[1]))
-        elif len(suffix) == 1:
-            suffix1 = self.one_hot(self.token_to_string(suffix[0]))
-            suffix2 = [0] * len(self.string_to_number)
         else:
             suffix1 = [0] * len(self.string_to_number)
-            suffix2 = [0] * len(self.string_to_number)
-        x = numpy.concatenate([prefix2, prefix1, suffix1, suffix2])
-        y = self.model.predict(numpy.reshape([x], (-1, 1, len(self.string_to_number) * 4)))
+
+        x = numpy.concatenate([prefix1, suffix1])
+        y = self.model.predict([x])
         predicted_seq = y[0]
         if type(predicted_seq) is numpy.ndarray:
             predicted_seq = predicted_seq.tolist()
 
-        s1 = predicted_seq[:int(len(predicted_seq) / 2)]
-        s2 = predicted_seq[int(len(predicted_seq) / 2):]
-        # s3 = predicted_seq[2 * (len(predicted_seq) / 3):]
+        offset = len(self.string_to_number)
+        s1 = predicted_seq[:offset]
+        s2 = predicted_seq[offset:2 * offset]
+        s3 = predicted_seq[2 * offset:]
 
         best_number1 = s1.index(max(s1))
         best_string1 = self.number_to_string[best_number1]
@@ -173,14 +159,12 @@ class Code_Completion_LstmFinal:
             res.append(best_token2)
             res_str += "|" + best_string2
 
-        """
         best_number3 = s3.index(max(s3))
         best_string3 = self.number_to_string[best_number3]
         if best_string3 != "EOS":
             best_token3 = self.string_to_token(best_string3)
             res.append(best_token3)
             res_str += "|" + best_string3
-        """
 
         print("FINAL RESULT: " + res_str)
         return res
